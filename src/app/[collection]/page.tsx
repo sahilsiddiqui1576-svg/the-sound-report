@@ -29,6 +29,7 @@ export async function generateMetadata({
 
 // Layout style per collection: grid (visual, cover-driven) vs list (editorial, row-driven)
 const LIST_STYLE: Record<CollectionSlug, "grid" | "list"> = {
+  articles: "list",
   "monthly-reviews": "grid",
   "weekly-picks": "grid",
   playlists: "grid",

@@ -10,6 +10,7 @@ interface FooterProps {
 }
 
 const EXPLORE = [
+  { href: "/articles", label: "Articles" },
   { href: "/monthly-reviews", label: "Monthly Reviews" },
   { href: "/weekly-picks", label: "Weekly Picks" },
   { href: "/playlists", label: "Playlists" },

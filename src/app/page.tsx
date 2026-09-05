@@ -1,11 +1,30 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getFeaturedEntries, getLatestEntries, readSiteSettings } from "@/lib/content";
+import {
+  getFeaturedEntries,
+  getLatestEntries,
+  getEntryByFilePath,
+  readHomepageConfig,
+  readSiteSettings
+} from "@/lib/content";
 import EditorialCard from "@/components/EditorialCard";
 import AnimatedSection from "@/components/AnimatedSection";
 import GenreChip from "@/components/GenreChip";
 import NewsletterForm from "@/components/NewsletterForm";
-import { COLLECTIONS } from "@/lib/types";
+import { COLLECTIONS, ContentEntry } from "@/lib/types";
+
+function dedupeBySlug(entries: (ContentEntry | undefined)[]): ContentEntry[] {
+  const seen = new Set<string>();
+  const result: ContentEntry[] = [];
+  for (const e of entries) {
+    if (!e) continue;
+    const key = `${e.collection}/${e.frontmatter.slug}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(e);
+  }
+  return result;
+}
 
 const TRENDING_GENRES = [
   { label: "Hip-Hop", change: "+24%" },
@@ -17,9 +36,35 @@ const TRENDING_GENRES = [
 ];
 
 export default function HomePage() {
-  const featured = getFeaturedEntries(6);
-  const latest = getLatestEntries(6);
+  const homepageConfig = readHomepageConfig();
   const settings = readSiteSettings();
+
+  // "Editor's Picks" — editorially curated via the CMS's Homepage section
+  // (Hero Article + Featured Articles). Falls back to auto-featured entries
+  // until an editor configures it, so the site never renders empty.
+  const curatedPicks = dedupeBySlug([
+    getEntryByFilePath(homepageConfig.heroArticle),
+    ...(homepageConfig.featuredArticles ?? []).map((item) => getEntryByFilePath(item?.article))
+  ]);
+  const featured = curatedPicks.length > 0 ? curatedPicks.slice(0, 6) : getFeaturedEntries(6);
+
+  // "Latest Articles" grid — editorially curated via the CMS's Homepage
+  // section (Featured Artist / Playlist / Weekly Pick / Monthly Review /
+  // Trend Report / Industry Insight). Falls back to the latest entries
+  // site-wide until an editor configures it.
+  const curatedLatest = dedupeBySlug([
+    getEntryByFilePath(homepageConfig.featuredArtist),
+    getEntryByFilePath(homepageConfig.featuredPlaylist),
+    getEntryByFilePath(homepageConfig.weeklyPick),
+    getEntryByFilePath(homepageConfig.monthlyReview),
+    getEntryByFilePath(homepageConfig.trendReport),
+    getEntryByFilePath(homepageConfig.industryInsight)
+  ]);
+  const latest = curatedLatest.length > 0 ? curatedLatest.slice(0, 6) : getLatestEntries(6);
+
+  const newsletterHeading = homepageConfig.newsletterHeading || "Stay in the Loop";
+  const newsletterBody =
+    homepageConfig.newsletterBody || `Get the best of ${settings.siteName} delivered to your inbox every week.`;
 
   return (
     <div>
@@ -114,10 +159,8 @@ export default function HomePage() {
       {/* Newsletter */}
       <section className="border-t border-black/5 bg-black/[.02] py-16 dark:border-white/10 dark:bg-white/[.02]">
         <div className="container-editorial flex flex-col items-center gap-4 text-center">
-          <h2 className="font-display text-2xl font-extrabold">Stay in the Loop</h2>
-          <p className="max-w-md text-neutral-500 dark:text-neutral-400">
-            Get the best of {settings.siteName} delivered to your inbox every week.
-          </p>
+          <h2 className="font-display text-2xl font-extrabold">{newsletterHeading}</h2>
+          <p className="max-w-md text-neutral-500 dark:text-neutral-400">{newsletterBody}</p>
           <NewsletterForm />
         </div>
       </section>
@@ -127,6 +170,7 @@ export default function HomePage() {
 
 function badgeFor(collection: keyof typeof COLLECTIONS) {
   const map: Record<string, string> = {
+    articles: "Featured Article",
     "monthly-reviews": "Spotlight",
     "weekly-picks": "Trending Now",
     playlists: "Featured Playlist",

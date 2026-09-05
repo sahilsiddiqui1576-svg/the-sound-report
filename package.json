@@ -4,8 +4,9 @@
   "private": true,
   "description": "The Sound Report — an independent music editorial publication.",
   "scripts": {
-    "dev": "next dev",
-    "build": "tsx scripts/build-search-index.ts && next build",
+    "dev": "tinacms dev -c \"next dev\"",
+    "build": "tinacms build && tsx scripts/build-search-index.ts && next build",
+    "build:no-tina": "tsx scripts/build-search-index.ts && next build",
     "prebuild": "tsx scripts/build-search-index.ts",
     "start": "next start",
     "lint": "next lint",
@@ -25,10 +26,12 @@
     "reading-time": "1.5.0",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-html": "^16.0.1"
+    "remark-html": "^16.0.1",
+    "tinacms": "^3.12.1"
   },
   "devDependencies": {
     "@tailwindcss/typography": "0.5.15",
+    "@tinacms/cli": "^2.6.1",
     "@types/node": "20.16.11",
     "@types/react": "18.3.11",
     "@types/react-dom": "18.3.1",

@@ -38,7 +38,7 @@ export function getCollectionEntries(collection: CollectionSlug): ContentEntry[]
   );
 
   return visible.sort((a, b) => {
-    // Manual `order` (set by dragging in Decap CMS) wins; otherwise sort by date desc.
+    // Manual `order` (set via the Manual Order field in TinaCMS) wins; otherwise sort by date desc.
     const orderA = a.frontmatter.order ?? Number.MAX_SAFE_INTEGER;
     const orderB = b.frontmatter.order ?? Number.MAX_SAFE_INTEGER;
     if (orderA !== orderB) return orderA - orderB;
@@ -94,6 +94,57 @@ export function readSingletonPage(slug: "about" | "contact"): {
   const raw = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(raw);
   return { frontmatter: data, body: content };
+}
+
+/** Resolves a Tina "reference" field value (a repo-relative file path, e.g.
+ * "content/articles/my-post.md") back into a fully parsed ContentEntry by
+ * reading that exact file directly, rather than by re-deriving its slug. */
+export function getEntryByFilePath(refPath?: string): ContentEntry | undefined {
+  if (!refPath) return undefined;
+  const absPath = path.join(process.cwd(), refPath.replace(/^\/+/, ""));
+  if (!fs.existsSync(absPath)) return undefined;
+
+  const collectionDir = path.basename(path.dirname(absPath));
+  const collection = (Object.keys(COLLECTIONS) as CollectionSlug[]).find(
+    (c) => COLLECTIONS[c].dir === collectionDir
+  );
+  if (!collection) return undefined;
+
+  const raw = fs.readFileSync(absPath, "utf-8");
+  const { data, content } = matter(raw);
+  const frontmatter = data as BaseFrontmatter;
+  if (process.env.NODE_ENV !== "development" && frontmatter.draft) return undefined;
+
+  return {
+    frontmatter,
+    body: content,
+    collection,
+    readingTimeMinutes: Math.max(1, Math.ceil(readingTime(content).minutes))
+  };
+}
+
+export interface HomepageConfig {
+  heroArticle?: string;
+  featuredArticles?: { article?: string }[];
+  featuredArtist?: string;
+  featuredPlaylist?: string;
+  weeklyPick?: string;
+  monthlyReview?: string;
+  trendReport?: string;
+  industryInsight?: string;
+  newsletterHeading?: string;
+  newsletterBody?: string;
+}
+
+/** Reads the editor-controlled homepage configuration. Returns an empty
+ * object (never throws) if the file doesn't exist yet, so the homepage can
+ * fall back to its automatic "featured"/"latest" behavior. */
+export function readHomepageConfig(): HomepageConfig {
+  const filePath = path.join(CONTENT_ROOT, "settings", "homepage.md");
+  if (!fs.existsSync(filePath)) return {};
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const { data } = matter(raw);
+  return data as HomepageConfig;
 }
 
 export function readSiteSettings() {

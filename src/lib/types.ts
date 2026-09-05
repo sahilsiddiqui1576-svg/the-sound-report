@@ -1,6 +1,6 @@
 // Central content model shared by every collection.
-// Decap CMS's config.yml (public/admin/config.yml) is the source of truth
-// for which fields editors see — keep the two in sync when you change this.
+// TinaCMS's schema (tina/config.ts) is the source of truth for which fields
+// editors see — keep the two in sync when you change this.
 
 export type Genre =
   | "Pop" | "Hip-Hop" | "R&B" | "Rock" | "Indie" | "Electronic"
@@ -16,6 +16,7 @@ export type Language =
   | "Japanese" | "Portuguese" | "Arabic" | "Punjabi" | "Other";
 
 export type CollectionSlug =
+  | "articles"
   | "monthly-reviews"
   | "weekly-picks"
   | "playlists"
@@ -66,6 +67,8 @@ export interface BaseFrontmatter extends SEO {
   // Spotlight-only
   artistName?: string;
   artistImage?: string;
+  location?: string;
+  country?: string;
   artistLinks?: {
     spotify?: string;
     appleMusic?: string;
@@ -74,6 +77,15 @@ export interface BaseFrontmatter extends SEO {
     instagram?: string;
     website?: string;
   };
+  // Playlist-only
+  curator?: string;
+  spotifyUrl?: string;
+  appleMusicUrl?: string;
+  youtubeUrl?: string;
+  // Weekly Picks-only display label, e.g. "Week of June 10, 2024"
+  weekLabel?: string;
+  // Trend Reports-only
+  researchNotes?: string;
   // Track-list bearing types (monthly reviews / weekly picks / playlists)
   tracks?: TrackRef[];
 }
@@ -96,6 +108,15 @@ export interface CollectionMeta {
 }
 
 export const COLLECTIONS: Record<CollectionSlug, CollectionMeta> = {
+  articles: {
+    slug: "articles",
+    label: "Articles",
+    singularLabel: "Article",
+    dir: "articles",
+    description: "Editorial coverage of music, marketing, business, technology, and culture.",
+    hasTracks: false,
+    isSpotlight: false
+  },
   "monthly-reviews": {
     slug: "monthly-reviews",
     label: "Monthly Reviews",
