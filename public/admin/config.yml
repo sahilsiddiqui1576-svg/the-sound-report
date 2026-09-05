@@ -1,0 +1,227 @@
+backend:
+  name: github
+  repo: YOUR_GITHUB_USERNAME/the-sound-report   # <-- replace with your repo
+  branch: main
+  base_url: https://your-oauth-provider.vercel.app   # <-- your deployed OAuth provider (see README)
+  auth_endpoint: api/auth
+
+publish_mode: editorial_workflow
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+site_url: https://thesoundreport.vercel.app
+display_url: https://thesoundreport.vercel.app
+logo_url: /images/logo.png
+
+locale: "en"
+
+# ---- Reusable field snippets -------------------------------------------------
+i18n: false
+
+collections:
+  # ---------------------------------------------------------------- SETTINGS
+  - name: "settings"
+    label: "Site Settings"
+    files:
+      - file: "content/settings/site.md"
+        name: "site"
+        label: "Global Site Settings"
+        fields:
+          - { label: "Site Name", name: "siteName", widget: "string" }
+          - { label: "Tagline", name: "tagline", widget: "string" }
+          - { label: "Founder Name", name: "founderName", widget: "string" }
+          - { label: "Default SEO Description", name: "defaultSeoDescription", widget: "text" }
+          - { label: "Default SEO Image", name: "defaultSeoImage", widget: "image" }
+          - label: "Social Links"
+            name: "socials"
+            widget: "object"
+            fields:
+              - { label: "Spotify", name: "spotify", widget: "string", required: false }
+              - { label: "YouTube", name: "youtube", widget: "string", required: false }
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "Twitter / X", name: "twitter", widget: "string", required: false }
+
+  # ---------------------------------------------------------------- PAGES
+  - name: "pages"
+    label: "Static Pages"
+    files:
+      - file: "content/pages/about.md"
+        name: "about"
+        label: "About Page"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "SEO Title", name: "seoTitle", widget: "string", required: false }
+          - { label: "SEO Description", name: "seoDescription", widget: "text", required: false }
+          - { label: "Body", name: "body", widget: "markdown" }
+      - file: "content/pages/contact.md"
+        name: "contact"
+        label: "Contact Page"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Body", name: "body", widget: "markdown" }
+
+  # ---------------------------------------------------------------- MONTHLY REVIEWS
+  - &editorial_collection
+    name: "monthly-reviews"
+    label: "Monthly Reviews"
+    folder: "content/monthly-reviews"
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: title
+    sortable_fields: ["order", "publishDate", "title"]
+    fields: &base_fields
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Slug", name: "slug", widget: "string", hint: "Used in the URL, e.g. march-2024-new-sounds-of-spring" }
+      - { label: "Publish Date", name: "publishDate", widget: "datetime" }
+      - { label: "Updated Date", name: "updatedDate", widget: "datetime", required: false }
+      - { label: "Featured", name: "featured", widget: "boolean", default: false }
+      - { label: "Draft", name: "draft", widget: "boolean", default: false }
+      - { label: "Manual Order", name: "order", widget: "number", required: false, hint: "Lower numbers appear first; drag to reorder in the list view too." }
+      - { label: "Category", name: "category", widget: "string" }
+      - { label: "Tags", name: "tags", widget: "list", default: [] }
+      - label: "Genre"
+        name: "genre"
+        widget: "select"
+        multiple: true
+        required: false
+        options: ["Pop", "Hip-Hop", "R&B", "Rock", "Indie", "Electronic", "Jazz", "Classical", "Folk", "Afrobeats", "Latin", "K-Pop", "Country", "Metal", "World", "Other"]
+      - label: "Mood"
+        name: "mood"
+        widget: "select"
+        multiple: true
+        required: false
+        options: ["Uplifting", "Chill", "Melancholic", "Energetic", "Romantic", "Introspective", "Rebellious", "Nostalgic", "Dark", "Feel-Good"]
+      - label: "Language"
+        name: "language"
+        widget: "select"
+        multiple: true
+        required: false
+        options: ["English", "Hindi", "Spanish", "Korean", "French", "Japanese", "Portuguese", "Arabic", "Punjabi", "Other"]
+      - { label: "Month", name: "month", widget: "select", required: false, options: ["January","February","March","April","May","June","July","August","September","October","November","December"] }
+      - { label: "Year", name: "year", widget: "number", required: false }
+      - { label: "Cover Image", name: "coverImage", widget: "image" }
+      - { label: "Cover Image Alt Text", name: "coverImageAlt", widget: "string", required: false }
+      - { label: "Excerpt", name: "excerpt", widget: "text" }
+      - { label: "Author", name: "author", widget: "string", required: false }
+      - label: "SEO"
+        name: "seo_group"
+        widget: "object"
+        collapsed: true
+        fields:
+          - { label: "SEO Title", name: "seoTitle", widget: "string", required: false }
+          - { label: "SEO Description", name: "seoDescription", widget: "text", required: false }
+          - { label: "SEO Image", name: "seoImage", widget: "image", required: false }
+          - { label: "Canonical URL", name: "canonicalUrl", widget: "string", required: false }
+      - label: "Tracks"
+        name: "tracks"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Track Title", name: "title", widget: "string" }
+          - { label: "Artist", name: "artist", widget: "string" }
+          - { label: "Album", name: "album", widget: "string", required: false }
+          - { label: "Editorial Note", name: "note", widget: "string", required: false }
+          - label: "Streaming Links"
+            name: "links"
+            widget: "object"
+            fields:
+              - { label: "Spotify URL", name: "spotify", widget: "string", required: false }
+              - { label: "Apple Music URL", name: "appleMusic", widget: "string", required: false }
+              - { label: "Amazon Music URL", name: "amazonMusic", widget: "string", required: false }
+              - { label: "YouTube URL", name: "youtube", widget: "string", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  # ---------------------------------------------------------------- WEEKLY PICKS
+  - <<: *editorial_collection
+    name: "weekly-picks"
+    label: "Weekly Picks"
+    folder: "content/weekly-picks"
+    fields: *base_fields
+
+  # ---------------------------------------------------------------- PLAYLISTS
+  - <<: *editorial_collection
+    name: "playlists"
+    label: "Playlists"
+    folder: "content/playlists"
+    fields: *base_fields
+
+  # ---------------------------------------------------------------- TREND REPORTS
+  - <<: *editorial_collection
+    name: "trend-reports"
+    label: "Trend Reports"
+    folder: "content/trend-reports"
+    fields: *base_fields
+
+  # ---------------------------------------------------------------- INDUSTRY INSIGHTS
+  - <<: *editorial_collection
+    name: "industry-insights"
+    label: "Industry Insights"
+    folder: "content/industry-insights"
+    fields: *base_fields
+
+  # ---------------------------------------------------------------- ARTIST SPOTLIGHTS
+  - <<: *editorial_collection
+    name: "artist-spotlights"
+    label: "Artist Spotlights"
+    folder: "content/artist-spotlights"
+    fields:
+      - { label: "Title", name: "title", widget: "string", hint: "e.g. Artist Spotlight: Hanumankind" }
+      - { label: "Slug", name: "slug", widget: "string" }
+      - { label: "Publish Date", name: "publishDate", widget: "datetime" }
+      - { label: "Updated Date", name: "updatedDate", widget: "datetime", required: false }
+      - { label: "Featured", name: "featured", widget: "boolean", default: false }
+      - { label: "Draft", name: "draft", widget: "boolean", default: false }
+      - { label: "Manual Order", name: "order", widget: "number", required: false }
+      - { label: "Category", name: "category", widget: "string", default: "Artist Spotlight" }
+      - { label: "Tags", name: "tags", widget: "list", default: [] }
+      - label: "Genre"
+        name: "genre"
+        widget: "select"
+        multiple: true
+        required: false
+        options: ["Pop", "Hip-Hop", "R&B", "Rock", "Indie", "Electronic", "Jazz", "Classical", "Folk", "Afrobeats", "Latin", "K-Pop", "Country", "Metal", "World", "Other"]
+      - label: "Language"
+        name: "language"
+        widget: "select"
+        multiple: true
+        required: false
+        options: ["English", "Hindi", "Spanish", "Korean", "French", "Japanese", "Portuguese", "Arabic", "Punjabi", "Other"]
+      - { label: "Cover Image", name: "coverImage", widget: "image" }
+      - { label: "Excerpt", name: "excerpt", widget: "text" }
+      - { label: "Artist Name", name: "artistName", widget: "string" }
+      - { label: "Artist Photo", name: "artistImage", widget: "image" }
+      - label: "Artist Links"
+        name: "artistLinks"
+        widget: "object"
+        fields:
+          - { label: "Spotify", name: "spotify", widget: "string", required: false }
+          - { label: "Apple Music", name: "appleMusic", widget: "string", required: false }
+          - { label: "Amazon Music", name: "amazonMusic", widget: "string", required: false }
+          - { label: "YouTube", name: "youtube", widget: "string", required: false }
+          - { label: "Instagram", name: "instagram", widget: "string", required: false }
+          - { label: "Website", name: "website", widget: "string", required: false }
+      - label: "Top Songs"
+        name: "tracks"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Track Title", name: "title", widget: "string" }
+          - { label: "Artist", name: "artist", widget: "string" }
+          - label: "Streaming Links"
+            name: "links"
+            widget: "object"
+            fields:
+              - { label: "Spotify URL", name: "spotify", widget: "string", required: false }
+              - { label: "Apple Music URL", name: "appleMusic", widget: "string", required: false }
+              - { label: "Amazon Music URL", name: "amazonMusic", widget: "string", required: false }
+              - { label: "YouTube URL", name: "youtube", widget: "string", required: false }
+      - label: "SEO"
+        name: "seo_group"
+        widget: "object"
+        collapsed: true
+        fields:
+          - { label: "SEO Title", name: "seoTitle", widget: "string", required: false }
+          - { label: "SEO Description", name: "seoDescription", widget: "text", required: false }
+          - { label: "SEO Image", name: "seoImage", widget: "image", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
